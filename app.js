@@ -1,147 +1,9 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Our monthly budget</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style id="css">
-:root{
-  --bg:#EEF2F0;--surface:#FFFFFF;--ink:#18302E;--muted:#5B6F6C;--line:#D5DEDB;
-  --accent:#2F7D6B;--accent-ink:#FFFFFF;--warn:#B57A0C;--over:#B4413A;--track:#E2E9E6;--soft:#F5F8F7;
-  color-scheme:light;
-  box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px);
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#121A19;--surface:#1A2423;--ink:#E4ECEA;--muted:#93A5A2;--line:#2C3A38;
-    --accent:#5CC0A6;--accent-ink:#0E1A18;--warn:#E3B04B;--over:#E2776E;--track:#24302E;--soft:#1F2B29;
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#121A19;--surface:#1A2423;--ink:#E4ECEA;--muted:#93A5A2;--line:#2C3A38;
-  --accent:#5CC0A6;--accent-ink:#0E1A18;--warn:#E3B04B;--over:#E2776E;--track:#24302E;--soft:#1F2B29;
-  color-scheme:dark;
-}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*,*::before,*::after{box-sizing:inherit}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Rubik",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-size:16px;line-height:1.5;font-variant-numeric:tabular-nums}
-.wrap{max-width:820px;margin:0 auto;padding:24px 16px 120px}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-h1{font-size:1.5rem;font-weight:600;margin:0}
-h2{font-size:1.125rem;font-weight:600;margin:0}
-.monthnav{display:flex;align-items:center;gap:6px}
-.monthnav .label{min-width:9.5em;text-align:center;font-weight:500}
-button{font:inherit;color:inherit;cursor:pointer}
-.iconbtn{background:var(--surface);border:1px solid var(--line);border-radius:999px;width:36px;height:36px;display:grid;place-items:center;font-size:1.1rem}
-.iconbtn:disabled{opacity:.35;cursor:default}
-.textbtn{background:none;border:none;color:var(--accent);font-weight:500;padding:4px 2px}
-.primary{background:var(--accent);color:var(--accent-ink);border:none;border-radius:10px;padding:9px 16px;font-weight:600}
-.primary:disabled{opacity:.6;cursor:default}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-
-.debt{background:var(--ink);color:var(--bg);border-radius:20px;padding:24px;margin-bottom:16px}
-.debt .top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
-.debt .big{font-size:clamp(2.4rem,9vw,3.6rem);font-weight:700;line-height:1;letter-spacing:-.02em}
-.debt .sub{opacity:.75;margin-top:6px}
-.debt .bar{height:14px;border-radius:999px;background:color-mix(in srgb,var(--bg) 20%,transparent);margin:20px 0 10px;overflow:hidden}
-.debt .bar span{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .5s ease}
-.debt .ends{display:flex;justify-content:space-between;font-size:.875rem;opacity:.75}
-.debt label{display:flex;flex-direction:column;gap:4px;font-size:.875rem}
-.debt input{background:color-mix(in srgb,var(--bg) 12%,transparent);border:1px solid color-mix(in srgb,var(--bg) 30%,transparent);color:var(--bg);border-radius:10px;padding:8px 10px;width:9em;font:inherit}
-
-.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:24px}
-.summary div{background:var(--surface);padding:14px 16px}
-.summary small{display:block;color:var(--muted);font-size:.8125rem}
-.summary b{font-size:1.25rem;font-weight:600}
-.pos{color:var(--accent)}.neg{color:var(--over)}
-
-section{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 18px 10px;margin-bottom:16px}
-.sechead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
-.sechead p{margin:0;color:var(--muted);font-size:.875rem}
-.row{display:grid;grid-template-columns:28px 1fr 7.5em 7.5em 28px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
-.row.head{border-top:none;color:var(--muted);font-size:.8125rem;padding-bottom:2px}
-.row.noncheck{grid-template-columns:1fr 7.5em 7.5em 28px}
-.row.noncheck.head{grid-template-columns:1fr 7.5em 7.5em 28px}
-.row .num{text-align:right}
-input[type=text],input[type=number],input[type=date],select{font:inherit;color:var(--ink);background:var(--soft);border:1px solid transparent;border-radius:8px;padding:6px 8px;width:100%;min-width:0}
-input[type=text]:hover,input[type=number]:hover,select:hover{border-color:var(--line)}
-input[type=number]{text-align:right;-moz-appearance:textfield}
-input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
-.del{background:none;border:none;color:var(--muted);font-size:1.1rem;width:28px;height:28px;border-radius:6px}
-.del:hover{color:var(--over);background:var(--soft)}
-.note{display:block;color:var(--muted);font-size:.75rem;padding-left:9px}
-.foot{display:flex;justify-content:space-between;align-items:center;padding:10px 0 6px;border-top:1px solid var(--line);font-weight:500}
-
-.cat{padding:10px 0;border-top:1px solid var(--line)}
-.cat:first-of-type{border-top:none}
-.cat .line1{display:grid;grid-template-columns:1fr 7.5em 28px;gap:8px;align-items:center}
-.cat .meter{height:8px;background:var(--track);border-radius:999px;overflow:hidden;margin:8px 0 4px}
-.cat .meter span{display:block;height:100%;background:var(--accent);border-radius:999px}
-.cat .meter span.warn{background:var(--warn)}.cat .meter span.over{background:var(--over)}
-.cat .line2{display:flex;justify-content:space-between;font-size:.8125rem;color:var(--muted)}
-.cat .line2 .over{color:var(--over);font-weight:500}
-
-.quick{display:grid;grid-template-columns:1.2fr .9fr 1.4fr 1fr 1.1fr auto;gap:8px;align-items:end;background:var(--soft);border-radius:12px;padding:12px;margin:8px 0 12px}
-.quick label{display:flex;flex-direction:column;gap:2px;font-size:.75rem;color:var(--muted)}
-.quick input,.quick select{background:var(--surface)}
-.log{list-style:none;margin:0;padding:0}
-.log li{display:grid;grid-template-columns:5.5em 1fr 6.5em 28px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:.9375rem}
-.log .d{color:var(--muted);font-size:.8125rem}
-.log .c{color:var(--muted);font-size:.8125rem}
-.empty{color:var(--muted);font-size:.9375rem;padding:6px 0 10px}
-.oncard{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:.75rem;padding-left:9px;cursor:pointer}
-.oncard input{width:14px;height:14px}
-.tag{display:inline-block;font-size:.6875rem;font-weight:500;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:0 6px;margin-left:4px;vertical-align:1px}
-.cardgrid{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:6px 0 10px}
-.cardgrid span:nth-child(even){text-align:right}
-.cardgrid .total{font-weight:600;border-top:1px solid var(--line);padding-top:6px}
-.cardbill{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
-.cardbill input[type=number]{width:8em}
-.cardbill .chk{display:inline-flex;align-items:center;gap:6px}
-.diff{font-size:.875rem;color:var(--muted);padding:0 0 10px}
-.diff.warn{color:var(--warn)}
-
-.savebar{position:fixed;left:0;right:0;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center}
-.savebar .in{max-width:820px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.savebar .msg{color:var(--muted);font-size:.875rem}
-.savebar .msg.strong{color:var(--ink);font-weight:500}
-
-@media (max-width:640px){
-  .summary{grid-template-columns:1fr 1fr}
-  .row{grid-template-columns:24px 1fr 5.6em 5.6em 24px;gap:6px}
-  .row.noncheck,.row.noncheck.head{grid-template-columns:1fr 5.6em 5.6em 24px}
-  .cat .line1{grid-template-columns:1fr 5.6em 24px}
-  .quick{grid-template-columns:1fr 1fr}
-  .quick .wide{grid-column:1/-1}
-  .log li{grid-template-columns:4.6em 1fr 5.4em 24px}
-}
-@media (prefers-reduced-motion:reduce){.debt .bar span{transition:none}}
-</style>
-</head>
-<body>
-<div id="root"></div>
-<script type="application/json" id="state">{"version":1,"debtStart":15000,"savedAt":0,"editedAt":0,"months":{}}</script>
-<script id="app">
 (function(){
   var root = document.getElementById('root');
-  var DRAFT = 'family-budget-draft-v1';
-  var state;
-  try { state = JSON.parse(document.getElementById('state').textContent); } catch (e) { state = null; }
-  if (!state || !state.months) state = {version:1, debtStart:15000, savedAt:0, editedAt:0, months:{}};
-
-  var dirty = false, canSave = null, artifactNs = null, saving = false, message = '';
-
-  try {
-    var d = JSON.parse(localStorage.getItem(DRAFT) || 'null');
-    if (d && d.months && (d.editedAt || 0) > (state.savedAt || 0)) { state = d; dirty = true; }
-  } catch (e) {}
+  var STORE = 'family-budget-v1';
+  var state = null, storageOk = true, message = '';
+  try { state = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) { storageOk = false; }
+  if (!state || !state.months) state = {version:1, debtStart:15000, months:{}};
 
   function uid(){ return Math.random().toString(36).slice(2, 9); }
   function pad(n){ return (n < 10 ? '0' : '') + n; }
@@ -206,9 +68,10 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
   }
 
   function touch(){
-    dirty = true; message = '';
+    message = '';
     state.editedAt = Date.now();
-    try { localStorage.setItem(DRAFT, JSON.stringify(state)); } catch (e) {}
+    try { localStorage.setItem(STORE, JSON.stringify(state)); storageOk = true; }
+    catch (e) { storageOk = false; }
   }
 
   function billActual(r){ return r.paid ? (r.actual == null ? r.planned : r.actual) : 0; }
@@ -353,14 +216,10 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
   function renderBar(){
     var el = document.getElementById('savebar');
     if (!el) return;
-    var txt, strong = false, btn = '';
-    if (message) { txt = message; strong = true; }
-    else if (!dirty) txt = 'All changes saved';
-    else if (canSave === true) { txt = 'You have unsaved changes'; strong = true; }
-    else if (canSave === false) txt = 'Changes are kept in this browser only';
-    else txt = 'Checking whether this page can save…';
-    if (dirty && canSave === true) btn = '<button class="primary" data-act="save" ' + (saving ? 'disabled' : '') + '>' + (saving ? 'Saving…' : 'Save changes') + '</button>';
-    el.innerHTML = '<span class="msg' + (strong ? ' strong' : '') + '">' + esc(txt) + '</span>' + btn;
+    var txt = message || (storageOk ? 'Changes save automatically in this browser' : 'This browser is blocking storage, so changes will be lost when you close the page');
+    el.innerHTML = '<span class="msg' + (message || !storageOk ? ' strong' : '') + '">' + esc(txt) + '</span>' +
+      '<span class="barbtns"><button class="textbtn" data-act="export">Download backup</button>' +
+      '<button class="textbtn" data-act="import">Restore backup</button></span>';
   }
 
   function rerender(){
@@ -419,7 +278,8 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
       var qa = document.getElementById('q-amt'); if (qa) qa.focus();
     }
     else if (act === 'dellog') { m.log = m.log.filter(function(l){ return l.id !== b.dataset.id; }); touch(); render(); }
-    else if (act === 'save') save();
+    else if (act === 'export') exportBackup();
+    else if (act === 'import') fileInput.click();
   });
 
   root.addEventListener('keydown', function(e){
@@ -428,42 +288,36 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
     }
   });
 
-  function buildPage(s){
-    var css = document.getElementById('css').textContent;
-    var app = document.getElementById('app').textContent;
-    var json = JSON.stringify(s).replace(/</g, '\\u003c');
-    return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' +
-      '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n' +
-      '<title>Our monthly budget</title>\n' +
-      '<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
-      '<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">\n' +
-      '<style id="css">' + css + '</style>\n</head>\n<body>\n<div id="root"></div>\n' +
-      '<script type="application/json" id="state">' + json + '<\/script>\n' +
-      '<script id="app">' + app + '<\/script>\n</body>\n</html>\n';
+  function exportBackup(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'budget-backup-' + todayISO() + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    message = 'Backup downloaded'; renderBar();
   }
 
-  function save(){
-    if (!artifactNs || saving) return;
-    saving = true; message = ''; renderBar();
-    var now = Date.now();
-    state.savedAt = now; state.editedAt = now;
-    try { localStorage.setItem(DRAFT, JSON.stringify(state)); } catch (e) {}
-    artifactNs.publish(buildPage(state)).catch(function(err){
-      saving = false;
-      var c = err && err.code;
-      if (c === 'conflict') message = 'A newer version was saved elsewhere. Loading it now.';
-      else if (['not_writer','not_granted','not_declared','consent_required','capability_disabled','capability_removed'].indexOf(c) >= 0) { canSave = false; message = 'This view can’t save, so changes are kept in this browser only.'; }
-      else if (c === 'rate_limited') message = 'Saving too often. Wait a moment, then save again.';
-      else message = 'The save didn’t go through. Try again in a moment.';
-      renderBar();
-    });
-  }
+  var fileInput = document.createElement('input');
+  fileInput.type = 'file'; fileInput.accept = 'application/json,.json'; fileInput.hidden = true;
+  document.body.appendChild(fileInput);
+  fileInput.addEventListener('change', function(){
+    var f = fileInput.files && fileInput.files[0]; if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try {
+        var data = JSON.parse(reader.result);
+        if (!data || !data.months || typeof data.months !== 'object') throw new Error('bad');
+        if (!confirm('Replace everything in this tracker with the backup from ' + f.name + '?')) return;
+        state = data;
+        var ks = keys(); cur = state.months[keyOf(new Date())] ? keyOf(new Date()) : ks[ks.length - 1];
+        if (!cur) { cur = keyOf(new Date()); state.months[cur] = defaultMonth(); }
+        touch(); message = 'Backup restored'; render();
+      } catch (e) { message = 'That file isn’t a budget backup. Choose a file made with Download backup.'; renderBar(); }
+      fileInput.value = '';
+    };
+    reader.readAsText(f);
+  });
 
   render();
-  if (window.claude && typeof window.claude.use === 'function') {
-    window.claude.use('artifact').then(function(ns){ artifactNs = ns; canSave = !!ns; renderBar(); }, function(){ canSave = false; renderBar(); });
-  } else { canSave = false; renderBar(); }
 })();
-</script>
-</body>
-</html>
