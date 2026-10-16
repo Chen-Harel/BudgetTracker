@@ -72,6 +72,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
 .cat{padding:10px 0;border-top:1px solid var(--line)}
 .cat:first-of-type{border-top:none}
 .cat .line1{display:grid;grid-template-columns:1fr 7.5em 28px;gap:8px;align-items:center}
+.cat .slider{display:block;width:100%;margin:10px 0 2px;accent-color:var(--accent);cursor:pointer}
 .cat .meter{height:8px;background:var(--track);border-radius:999px;overflow:hidden;margin:8px 0 4px}
 .cat .meter span{display:block;height:100%;background:var(--accent);border-radius:999px}
 .cat .meter span.warn{background:var(--warn)}.cat .meter span.over{background:var(--over)}

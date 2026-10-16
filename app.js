@@ -76,6 +76,15 @@
 
   function billActual(r){ return r.paid ? (r.actual == null ? r.planned : r.actual) : 0; }
   function catSpent(m, id){ return sum(m.log.filter(function(l){ return l.cat === id; }), function(l){ return l.amount; }); }
+  // The spent slider stores its difference from logged purchases as one adjustment entry per category
+  function catAdj(m, id){ return m.log.filter(function(l){ return l.adj && l.cat === id; })[0]; }
+  function catLogged(m, id){ var a = catAdj(m, id); return catSpent(m, id) - (a ? a.amount : 0); }
+  // Slider range: budget plus half again, rounded up to ₪500, and never below what's already spent
+  function sliderMax(plan, spent){ return Math.max(500, Math.ceil(Math.max(plan * 1.5, spent) / 500) * 500); }
+  function meterState(spent, plan){
+    var pct = plan > 0 ? Math.min(100, spent / plan * 100) : (spent > 0 ? 100 : 0);
+    return {pct:pct, cls:spent > plan ? 'over' : (pct >= 80 ? 'warn' : ''), left:plan - spent};
+  }
 
   function render(){
     var m = state.months[cur];
@@ -147,13 +156,12 @@
     h += '<section><div class="sechead"><h2>Everyday spending</h2><p>Log each purchase to see what’s left</p></div>';
     m.spending.forEach(function(r){
       var spent = catSpent(m, r.id), plan = r.planned || 0;
-      var pct = plan > 0 ? Math.min(100, spent / plan * 100) : (spent > 0 ? 100 : 0);
-      var cls = spent > plan ? 'over' : (pct >= 80 ? 'warn' : '');
-      var left = plan - spent;
+      var ms = meterState(spent, plan), pct = ms.pct, cls = ms.cls, left = ms.left;
       h += '<div class="cat"><div class="line1">' +
         '<input type="text" id="spending-' + r.id + '-name" data-f="row" data-list="spending" data-id="' + r.id + '" data-k="name" value="' + esc(r.name) + '" aria-label="Category name">' +
         '<input type="number" inputmode="numeric" id="spending-' + r.id + '-planned" data-f="row" data-list="spending" data-id="' + r.id + '" data-k="planned" value="' + valAttr(r.planned) + '" aria-label="Budget for ' + esc(r.name) + '">' +
         '<button class="del" data-act="delrow" data-list="spending" data-id="' + r.id + '" aria-label="Remove ' + esc(r.name) + '">×</button></div>' +
+        '<input type="range" class="slider" id="spending-' + r.id + '-slider" data-f="spent" data-id="' + r.id + '" min="0" max="' + sliderMax(plan, spent) + '" step="10" value="' + spent + '" aria-label="Amount spent on ' + esc(r.name) + '">' +
         '<div class="meter"><span class="' + cls + '" style="width:' + pct + '%"></span></div>' +
         '<div class="line2"><span>' + money(spent) + ' spent</span><span class="' + (left < 0 ? 'over' : '') + '">' + (left < 0 ? money(-left) + ' over' : money(left) + ' left') + '</span></div></div>';
     });
@@ -174,7 +182,7 @@
       log.forEach(function(l){
         var c = m.spending.filter(function(s){ return s.id === l.cat; })[0];
         var dd = l.date ? new Date(l.date + 'T00:00:00').toLocaleString('en-US', {day:'numeric', month:'short'}) : '';
-        h += '<li><span class="d">' + dd + '</span><span>' + (l.note ? esc(l.note) + ' ' : '') + '<span class="c">' + esc(c ? c.name : (l.cat ? 'Removed category' : 'No category')) + '</span>' + (l.method === 'card' ? '<span class="tag">Card</span>' : '') + '</span>' +
+        h += '<li><span class="d">' + dd + '</span><span>' + (l.adj ? 'Slider adjustment ' : l.note ? esc(l.note) + ' ' : '') + '<span class="c">' + esc(c ? c.name : (l.cat ? 'Removed category' : 'No category')) + '</span>' + (l.method === 'card' ? '<span class="tag">Card</span>' : '') + '</span>' +
           '<span class="num">' + money(l.amount) + '</span><button class="del" data-act="dellog" data-id="' + l.id + '" aria-label="Remove purchase">×</button></li>';
       });
       h += '</ul>';
@@ -259,10 +267,34 @@
       else if (k === 'paid') { r.paid = t.checked; if (t.checked && r.actual == null) r.actual = r.planned; }
       else { r[k] = numVal(t.value); if (t.dataset.list === 'bills' && k === 'actual') r.paid = r.actual != null; }
     } else if (f === 'debt' || f === 'savings') m[f][t.dataset.k] = numVal(t.value);
+    else if (f === 'spent') {
+      var id = t.dataset.id, diff = Math.max(0, (numVal(t.value) || 0) - catLogged(m, id)), a = catAdj(m, id);
+      if (!diff) m.log = m.log.filter(function(l){ return l !== a; });
+      else if (a) { a.amount = diff; a.date = todayISO(); }
+      else m.log.push({id:uid(), cat:id, amount:diff, note:'', date:todayISO(), method:'bank', adj:true});
+    }
     else if (f === 'balance') m.balance = numVal(t.value);
     else if (f === 'card') { if (!m.card) m.card = {bill:null, paid:false}; if (t.dataset.k === 'paid') m.card.paid = t.checked; else m.card.bill = numVal(t.value); }
     else if (f === 'debtstart') { var v = numVal(t.value); if (v && v > 0) state.debtStart = v; }
     touch(); rerender();
+  });
+
+  // While a budget slider is dragged, update its row in place; the change event saves and re-renders on release
+  root.addEventListener('input', function(e){
+    var t = e.target; if (t.dataset.f !== 'spent') return;
+    var m = state.months[cur];
+    var r = m.spending.filter(function(x){ return x.id === t.dataset.id; })[0]; if (!r) return;
+    // Can't drag below purchases already logged in this category
+    var spent = Math.max(catLogged(m, r.id), numVal(t.value) || 0);
+    if (+t.value < spent) t.value = spent;
+    var ms = meterState(spent, r.planned || 0), box = t.closest('.cat');
+    var bar = box.querySelector('.meter span');
+    bar.style.width = ms.pct + '%';
+    bar.className = ms.cls;
+    var lbls = box.querySelectorAll('.line2 span');
+    lbls[0].textContent = money(spent) + ' spent';
+    lbls[1].className = ms.left < 0 ? 'over' : '';
+    lbls[1].textContent = ms.left < 0 ? money(-ms.left) + ' over' : money(ms.left) + ' left';
   });
 
   root.addEventListener('click', function(e){
