@@ -174,7 +174,7 @@
       log.forEach(function(l){
         var c = m.spending.filter(function(s){ return s.id === l.cat; })[0];
         var dd = l.date ? new Date(l.date + 'T00:00:00').toLocaleString('en-US', {day:'numeric', month:'short'}) : '';
-        h += '<li><span class="d">' + dd + '</span><span>' + (l.note ? esc(l.note) + ' ' : '') + '<span class="c">' + esc(c ? c.name : 'Removed category') + '</span>' + (l.method === 'card' ? '<span class="tag">Card</span>' : '') + '</span>' +
+        h += '<li><span class="d">' + dd + '</span><span>' + (l.note ? esc(l.note) + ' ' : '') + '<span class="c">' + esc(c ? c.name : (l.cat ? 'Removed category' : 'No category')) + '</span>' + (l.method === 'card' ? '<span class="tag">Card</span>' : '') + '</span>' +
           '<span class="num">' + money(l.amount) + '</span><button class="del" data-act="dellog" data-id="' + l.id + '" aria-label="Remove purchase">×</button></li>';
       });
       h += '</ul>';
@@ -191,6 +191,24 @@
       '<span class="total">Expected card bill</span><span class="total">' + money(expected) + '</span></div>' +
       '<div class="cardbill"><label>Actual card bill <input type="number" inputmode="numeric" id="card-bill" data-f="card" data-k="bill" value="' + valAttr(m.card.bill) + '" placeholder="From statement"></label>' +
       '<label class="chk"><input type="checkbox" id="card-paid" data-f="card" data-k="paid" ' + (m.card.paid ? 'checked' : '') + '>Bill paid</label></div>';
+    h += '<div class="quick cardquick">' +
+      '<label>Amount<input type="number" inputmode="decimal" id="cq-amt" placeholder="₪"></label>' +
+      '<label class="wide">What was it<input type="text" id="cq-note" placeholder="Shop or item"></label>' +
+      '<label>Category<select id="cq-cat">' + m.spending.map(function(r){ return '<option value="' + r.id + '">' + esc(r.name) + '</option>'; }).join('') + '<option value="">No category</option></select></label>' +
+      '<label>Date<input type="date" id="cq-date" value="' + todayISO() + '"></label>' +
+      '<button class="primary" data-act="addcard">Add purchase</button></div>';
+    var cardLog = m.log.filter(function(l){ return l.method === 'card'; }).sort(function(a, b){ return a.date < b.date ? 1 : -1; });
+    if (!cardLog.length) h += '<p class="empty">No card purchases this month yet.</p>';
+    else {
+      h += '<ul class="log">';
+      cardLog.forEach(function(l){
+        var c = m.spending.filter(function(s){ return s.id === l.cat; })[0];
+        var dd = l.date ? new Date(l.date + 'T00:00:00').toLocaleString('en-US', {day:'numeric', month:'short'}) : '';
+        h += '<li><span class="d">' + dd + '</span><span>' + (l.note ? esc(l.note) + ' ' : '') + '<span class="c">' + esc(c ? c.name : (l.cat ? 'Removed category' : 'No category')) + '</span></span>' +
+          '<span class="num">' + money(l.amount) + '</span><button class="del" data-act="dellog" data-id="' + l.id + '" aria-label="Remove purchase">×</button></li>';
+      });
+      h += '</ul>';
+    }
     if (m.card.bill != null) {
       var diff = m.card.bill - expected;
       h += '<p class="diff' + (Math.abs(diff) >= 1 ? ' warn' : '') + '">' + (Math.abs(diff) < 1 ? 'The statement matches what you logged.' : diff > 0 ? money(diff) + ' on the statement isn’t logged here yet. Check for missing purchases.' : 'The statement is ' + money(-diff) + ' less than what you logged.') + '</p>';
@@ -277,6 +295,15 @@
       var qm = document.getElementById('q-method'); if (qm) qm.value = method;
       var qa = document.getElementById('q-amt'); if (qa) qa.focus();
     }
+    else if (act === 'addcard') {
+      var camt = numVal(document.getElementById('cq-amt').value);
+      if (!camt) { document.getElementById('cq-amt').focus(); return; }
+      var ccat = document.getElementById('cq-cat').value;
+      m.log.push({id:uid(), cat:ccat, amount:camt, note:document.getElementById('cq-note').value.trim(), date:document.getElementById('cq-date').value || todayISO(), method:'card'});
+      touch(); render();
+      var cs = document.getElementById('cq-cat'); if (cs) cs.value = ccat;
+      var ca = document.getElementById('cq-amt'); if (ca) ca.focus();
+    }
     else if (act === 'dellog') { m.log = m.log.filter(function(l){ return l.id !== b.dataset.id; }); touch(); render(); }
     else if (act === 'export') exportBackup();
     else if (act === 'import') fileInput.click();
@@ -285,6 +312,9 @@
   root.addEventListener('keydown', function(e){
     if (e.key === 'Enter' && (e.target.id === 'q-amt' || e.target.id === 'q-note')) {
       e.preventDefault(); var b = root.querySelector('[data-act="addlog"]'); if (b) b.click();
+    }
+    if (e.key === 'Enter' && (e.target.id === 'cq-amt' || e.target.id === 'cq-note')) {
+      e.preventDefault(); var cb = root.querySelector('[data-act="addcard"]'); if (cb) cb.click();
     }
   });
 
